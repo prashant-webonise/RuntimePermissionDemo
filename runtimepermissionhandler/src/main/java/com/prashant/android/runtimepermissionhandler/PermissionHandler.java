@@ -1,8 +1,10 @@
 package com.prashant.android.runtimepermissionhandler;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
+import android.support.v13.app.FragmentCompat;
 import android.support.v4.app.ActivityCompat;
 
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ public class PermissionHandler {
      */
     private List<String> permissionsList;
     private Activity activity;
+    private Fragment fragment;
     /**
      * instance of callback interface for delegating the permission states
      */
@@ -33,6 +36,10 @@ public class PermissionHandler {
         this.activity = activity;
     }
 
+    public PermissionHandler(Fragment fragment) {
+        this.fragment = fragment;
+    }
+
     @NonNull
     private static String[] getStringArray(List<String> stringList) {
         return stringList.toArray(new String[stringList.size()]);
@@ -45,7 +52,7 @@ public class PermissionHandler {
      * @return
      */
     public PermissionHandler addPermission(String permission) {
-        if (permissionsList == null) {
+        if (null == permissionsList) {
             permissionsList = new ArrayList<>();
         }
         if (!permissionsList.contains(permission)) {
@@ -61,10 +68,11 @@ public class PermissionHandler {
      * @return
      */
     private boolean checkPermission() {
-        List<String> permissionsList = new ArrayList<>(this.permissionsList);
+        final List<String> permissionsList = new ArrayList<>(this.permissionsList);
         boolean status = true;
         for (String permission : permissionsList) {
-            if (checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
+            if (PackageManager.PERMISSION_GRANTED != checkSelfPermission(null == activity ?
+                    fragment.getActivity() : activity, permission)) {
                 status = false;
             } else {
                 this.permissionsList.remove(permission);
@@ -79,17 +87,17 @@ public class PermissionHandler {
      * @param permissionInterface
      */
     public void build(PermissionCallback permissionInterface) {
-        if (permissionsList == null) {
+        if (null == permissionsList) {
             return;
         }
         this.permissionInterface = permissionInterface;
         if (checkPermission()) {
-            if (this.permissionInterface != null) {
+            if (null != this.permissionInterface) {
                 this.permissionInterface.permissionAccepted();
             }
-        } else if (shouldShowRequestPermissionRationale(activity, permissionsList)) {
+        } else if (shouldShowRequestPermissionRationale(permissionsList)) {
             requestForPermission();
-            if (this.permissionInterface != null) {
+            if (null != this.permissionInterface) {
                 this.permissionInterface.showRationale();
             }
         } else {
@@ -101,22 +109,31 @@ public class PermissionHandler {
      * method to display the System default rationale
      */
     private void requestForPermission() {
-        ActivityCompat.requestPermissions(activity, getStringArray(permissionsList),
-                permissionsList.size());
+        if (null == fragment) {
+            ActivityCompat.requestPermissions(activity, getStringArray(permissionsList),
+                    permissionsList.size());
+        } else {
+            FragmentCompat.requestPermissions(fragment, getStringArray(permissionsList),
+                    permissionsList.size());
+        }
     }
 
     /**
      * method to check if the permission qualifies for showing rationale
      *
-     * @param activity
      * @param permissions
      * @return
      */
-    private boolean shouldShowRequestPermissionRationale(Activity activity, List<String>
-            permissions) {
+    private boolean shouldShowRequestPermissionRationale(List<String> permissions) {
         for (String permission : permissions) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
-                return true;
+            if (null == fragment) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
+                    return true;
+                }
+            } else {
+                if (FragmentCompat.shouldShowRequestPermissionRationale(fragment, permission)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -130,7 +147,7 @@ public class PermissionHandler {
      */
     private boolean checkAllPermissionsGranted(int[] grantResults) {
         for (int result : grantResults) {
-            if (result != PackageManager.PERMISSION_GRANTED) {
+            if (PackageManager.PERMISSION_GRANTED != result) {
                 return false;
             }
         }
@@ -144,11 +161,11 @@ public class PermissionHandler {
      */
     public void dispatchPermissionResult(int[] grantResults) {
         if (checkAllPermissionsGranted(grantResults)) {
-            if (permissionInterface != null) {
+            if (null != permissionInterface) {
                 permissionInterface.permissionAccepted();
             }
         } else {
-            if (permissionInterface != null) {
+            if (null != permissionInterface) {
                 permissionInterface.permissionRejected();
             }
         }
