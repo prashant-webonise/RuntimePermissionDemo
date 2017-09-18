@@ -1,14 +1,15 @@
 package com.prashant.android.runtimepermissionhandler;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
-import android.support.v13.app.FragmentCompat;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
@@ -19,7 +20,7 @@ public class PermissionHandler {
     /**
      * list for storing single/multi permissions
      */
-    private List<String> permissionsList;
+    private final Set<String> permissionsList = new HashSet<>();
     private Activity activity;
     private Fragment fragment;
     /**
@@ -30,34 +31,35 @@ public class PermissionHandler {
     /**
      * constructor supplied with activity reference
      *
-     * @param activity
+     * @param activity valid instance of {@link Activity}
      */
     public PermissionHandler(Activity activity) {
         this.activity = activity;
     }
 
+    /**
+     * constructor supplied with fragment reference
+     *
+     * @param fragment valid instance of {@link Fragment}
+     */
     public PermissionHandler(Fragment fragment) {
         this.fragment = fragment;
     }
 
     @NonNull
-    private static String[] getStringArray(List<String> stringList) {
+    private static String[] getStringArray(Set<String> stringList) {
         return stringList.toArray(new String[stringList.size()]);
     }
 
     /**
      * method to add permission. The same method can be called again for adding more permissions
      *
-     * @param permission
+     * @param permission The string permission which needs to be asked. Must be from the
+     *                   {@link android.Manifest.permission}
      * @return
      */
     public PermissionHandler addPermission(String permission) {
-        if (null == permissionsList) {
-            permissionsList = new ArrayList<>();
-        }
-        if (!permissionsList.contains(permission)) {
-            permissionsList.add(permission);
-        }
+        permissionsList.add(permission);
         return this;
     }
 
@@ -84,12 +86,9 @@ public class PermissionHandler {
     /**
      * method to start requesting the permissions
      *
-     * @param permissionInterface
+     * @param permissionInterface instance of {@link PermissionCallback} to listen to events
      */
     public void build(PermissionCallback permissionInterface) {
-        if (null == permissionsList) {
-            return;
-        }
         this.permissionInterface = permissionInterface;
         if (checkPermission()) {
             if (null != this.permissionInterface) {
@@ -113,25 +112,21 @@ public class PermissionHandler {
             ActivityCompat.requestPermissions(activity, getStringArray(permissionsList),
                     permissionsList.size());
         } else {
-            FragmentCompat.requestPermissions(fragment, getStringArray(permissionsList),
-                    permissionsList.size());
+            fragment.requestPermissions(getStringArray(permissionsList), permissionsList.size());
         }
     }
 
     /**
      * method to check if the permission qualifies for showing rationale
-     *
-     * @param permissions
-     * @return
      */
-    private boolean shouldShowRequestPermissionRationale(List<String> permissions) {
+    private boolean shouldShowRequestPermissionRationale(Set<String> permissions) {
         for (String permission : permissions) {
             if (null == fragment) {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
                     return true;
                 }
             } else {
-                if (FragmentCompat.shouldShowRequestPermissionRationale(fragment, permission)) {
+                if (fragment.shouldShowRequestPermissionRationale(permission)) {
                     return true;
                 }
             }
@@ -141,9 +136,6 @@ public class PermissionHandler {
 
     /**
      * method to check if the supplied array of permissions is granted by the system
-     *
-     * @param grantResults
-     * @return
      */
     private boolean checkAllPermissionsGranted(int[] grantResults) {
         for (int result : grantResults) {
@@ -155,9 +147,10 @@ public class PermissionHandler {
     }
 
     /**
-     * method to call from Activity's onRequestPermissionsResult
+     * method to call from {@link Activity#onRequestPermissionsResult(int, String[], int[])} of
+     * {@link Fragment#onRequestPermissionsResult(int, String[], int[])}
      *
-     * @param grantResults
+     * @param grantResults the grantResults onRequestPermissionsResult
      */
     public void dispatchPermissionResult(int[] grantResults) {
         if (checkAllPermissionsGranted(grantResults)) {
