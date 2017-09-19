@@ -5,13 +5,12 @@ import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.PermissionChecker;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static android.support.v4.content.PermissionChecker.checkSelfPermission;
 
 /**
  * @author Prashant Singh
@@ -56,7 +55,6 @@ public class PermissionHandler {
      *
      * @param permission The string permission which needs to be asked. Must be from the
      *                   {@link android.Manifest.permission}
-     * @return
      */
     public PermissionHandler addPermission(String permission) {
         permissionsList.add(permission);
@@ -67,13 +65,13 @@ public class PermissionHandler {
      * method checks if the permission in the permissionsList are not already granted, if
      * granted, it removes the permission from the permissionsList
      *
-     * @return
      */
     private boolean checkPermission() {
         final List<String> permissionsList = new ArrayList<>(this.permissionsList);
         boolean status = true;
         for (String permission : permissionsList) {
-            if (PackageManager.PERMISSION_GRANTED != checkSelfPermission(null == activity ?
+            if (PackageManager.PERMISSION_GRANTED !=
+                    PermissionChecker.checkSelfPermission(null == activity ?
                     fragment.getActivity() : activity, permission)) {
                 status = false;
             } else {
