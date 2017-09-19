@@ -1,5 +1,29 @@
 apply plugin: 'com.android.library'
 
+ext {
+    bintrayRepo = 'RuntimePermissionHandler'
+    bintrayName = 'RuntimePermissionHandler'
+
+    publishedGroupId = 'com.prashant.android'
+    libraryName = 'RuntimePermissionHandler'
+    artifact = 'runtimepermissionhandler'
+
+    libraryDescription = ' '
+
+    siteUrl = 'https://github.com/singhprashant17/RuntimePermissionDemo'
+    gitUrl = 'https://github.com/singhprashant17/RuntimePermissionDemo.git'
+
+    libraryVersion = '1.0.0'
+
+    developerId = 'singhprashant17'
+    developerName = 'Prashant Singh'
+    developerEmail = 'singhprashantkumar@hotmail.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
 android {
     compileSdkVersion 25
     buildToolsVersion '25.0.0'
@@ -23,3 +47,10 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:25.0.0'
 }
+
+tasks.withType(Javadoc).all {
+    enabled = false
+}
+
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
