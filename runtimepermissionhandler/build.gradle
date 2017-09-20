@@ -1,5 +1,7 @@
 apply plugin: 'com.android.library'
 
+def latestVersion = '1.0.1'
+
 ext {
     bintrayRepo = 'RuntimePermissionHandler'
     bintrayName = 'RuntimePermissionHandler'
@@ -13,7 +15,7 @@ ext {
     siteUrl = 'https://github.com/singhprashant17/RuntimePermissionDemo'
     gitUrl = 'https://github.com/singhprashant17/RuntimePermissionDemo.git'
 
-    libraryVersion = '1.0.0'
+    libraryVersion = latestVersion
 
     developerId = 'singhprashant17'
     developerName = 'Prashant Singh'
