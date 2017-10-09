@@ -2,6 +2,7 @@ package com.prashant.android.runtimepermissionhandler;
 
 import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -22,6 +23,7 @@ public class PermissionHandler {
     private final Set<String> permissionsList = new HashSet<>();
     private Activity activity;
     private Fragment fragment;
+    private int requestCode;
     /**
      * instance of callback interface for delegating the permission states
      */
@@ -86,16 +88,18 @@ public class PermissionHandler {
      *
      * @param permissionInterface instance of {@link PermissionCallback} to listen to events
      */
-    public void build(PermissionCallback permissionInterface) {
+    public void ask(final @IntRange(from = 0) int requestCode,
+                    PermissionCallback permissionInterface) {
+        this.requestCode = requestCode;
         this.permissionInterface = permissionInterface;
         if (checkPermission()) {
             if (null != this.permissionInterface) {
-                this.permissionInterface.permissionAccepted();
+                this.permissionInterface.permissionAccepted(requestCode);
             }
         } else if (shouldShowRequestPermissionRationale(permissionsList)) {
             requestForPermission();
             if (null != this.permissionInterface) {
-                this.permissionInterface.showRationale();
+                this.permissionInterface.showRationale(requestCode);
             }
         } else {
             requestForPermission();
@@ -108,9 +112,9 @@ public class PermissionHandler {
     private void requestForPermission() {
         if (null == fragment) {
             ActivityCompat.requestPermissions(activity, getStringArray(permissionsList),
-                    permissionsList.size());
+                    requestCode);
         } else {
-            fragment.requestPermissions(getStringArray(permissionsList), permissionsList.size());
+            fragment.requestPermissions(getStringArray(permissionsList), requestCode);
         }
     }
 
@@ -153,11 +157,11 @@ public class PermissionHandler {
     public void dispatchPermissionResult(int[] grantResults) {
         if (checkAllPermissionsGranted(grantResults)) {
             if (null != permissionInterface) {
-                permissionInterface.permissionAccepted();
+                permissionInterface.permissionAccepted(requestCode);
             }
         } else {
             if (null != permissionInterface) {
-                permissionInterface.permissionRejected();
+                permissionInterface.permissionRejected(requestCode);
             }
         }
     }
@@ -166,10 +170,10 @@ public class PermissionHandler {
      * callback interface for delegating the permission states
      */
     public interface PermissionCallback {
-        void permissionAccepted();
+        void permissionAccepted(final int requestCode);
 
-        void showRationale();
+        void showRationale(final int requestCode);
 
-        void permissionRejected();
+        void permissionRejected(final int requestCode);
     }
 }

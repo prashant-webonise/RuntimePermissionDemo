@@ -10,9 +10,13 @@ import android.view.View;
 
 import com.prashant.android.runtimepermissionhandler.PermissionHandler;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements PermissionHandler
+        .PermissionCallback {
 
-    private PermissionHandler permissionHandler;
+    private static final int REQUEST_MULTIPLE_PERMISSION = 22;
+    private static final int REQUEST_SINGLE_PERMISSION = 42;
+    private PermissionHandler multiplePermissionHandler;
+    private PermissionHandler singlePermissionHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,56 +42,58 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void askMultiplePermission() {
-        permissionHandler = new PermissionHandler(this);
-        permissionHandler
+        multiplePermissionHandler = new PermissionHandler(this);
+        multiplePermissionHandler
                 .addPermission(Manifest.permission.CALL_PHONE)
                 .addPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                .build(new PermissionHandler.PermissionCallback() {
-
+                .ask(REQUEST_MULTIPLE_PERMISSION, new PermissionHandler.PermissionCallback() {
                     @Override
-                    public void permissionRejected() {
-                        Log.d(getClass().getSimpleName(), "permission rejected");
+                    public void permissionAccepted(int requestCode) {
+
                     }
 
                     @Override
-                    public void permissionAccepted() {
-                        Log.d(getClass().getSimpleName(), "permission accepted");
+                    public void showRationale(int requestCode) {
+
                     }
 
                     @Override
-                    public void showRationale() {
-                        Log.d(getClass().getSimpleName(), "asking permission again");
+                    public void permissionRejected(int requestCode) {
+
                     }
                 });
     }
 
     private void askSinglePermission() {
-        permissionHandler = new PermissionHandler(this);
-        permissionHandler
+        singlePermissionHandler = new PermissionHandler(this);
+        singlePermissionHandler
                 .addPermission(Manifest.permission.CAMERA)
-                .build(new PermissionHandler.PermissionCallback() {
-
-                    @Override
-                    public void permissionRejected() {
-                        Log.d(getClass().getSimpleName(), "permission rejected");
-                    }
-
-                    @Override
-                    public void permissionAccepted() {
-                        Log.d(getClass().getSimpleName(), "permission accepted");
-                    }
-
-                    @Override
-                    public void showRationale() {
-                        Log.d(getClass().getSimpleName(), "asking permission again");
-                    }
-                });
+                .ask(REQUEST_SINGLE_PERMISSION, this);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        permissionHandler.dispatchPermissionResult(grantResults);
+        if (requestCode == REQUEST_SINGLE_PERMISSION) {
+            singlePermissionHandler.dispatchPermissionResult(grantResults);
+        } else if (requestCode == REQUEST_MULTIPLE_PERMISSION) {
+            multiplePermissionHandler.dispatchPermissionResult(grantResults);
+        }
+    }
+
+    @Override
+    public void permissionAccepted(int requestCode) {
+        Log.d(getClass().getSimpleName(), "permission accepted");
+    }
+
+    @Override
+    public void showRationale(int requestCode) {
+        Log.d(getClass().getSimpleName(), "asking permission again");
+    }
+
+    @Override
+    public void permissionRejected(int requestCode) {
+        Log.d(getClass().getSimpleName(), "permission rejected");
     }
 }
