@@ -16,23 +16,22 @@ permissionHandler = new PermissionHandler(this);
         permissionHandler
                 .addPermission(Manifest.permission.CALL_PHONE)
                 .addPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-                .build(new PermissionHandler.PermissionCallback() {
-
-                    @Override
-                    public void permissionRejected() {
-                        Log.d(getClass().getSimpleName(), "permission rejected");
-                    }
-
-                    @Override
-                    public void permissionAccepted() {
-                        Log.d(getClass().getSimpleName(), "permission accepted");
-                    }
-
-                    @Override
-                    public void showRationale() {
-                        Log.d(getClass().getSimpleName(), "asking permission again");
-                    }
-                });
+                .ask(REQUEST_CODE, new PermissionHandler.PermissionCallback() {
+                                    @Override
+                                    public void permissionAccepted(int requestCode) {
+                
+                                    }
+                
+                                    @Override
+                                    public void showRationale(int requestCode) {
+                
+                                    }
+                
+                                    @Override
+                                    public void permissionRejected(int requestCode) {
+                
+                                    }
+                                });
 ```
 And add this to ```onRequestPermissionsResult()```
 ```java
@@ -44,7 +43,7 @@ Add it on your gradle build:
 
 ```groovy
 dependencies {
-    compile 'com.prashant.android:runtimepermissionhandler:1.0.1'
+    compile 'com.prashant.android:runtimepermissionhandler:1.0.2'
 }
 ```
 
