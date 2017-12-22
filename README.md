@@ -10,7 +10,10 @@ The demo project has implementation with this RuntimePermissionHandler.
 
 <b>Usage</b>
 
-Anywhere in your Activity or Fragment that you want to ask for user's permisssion
+Anywhere in your Activity or Fragment that you want to ask for user's permisssion.
+
+This library works on Activity, android.app.Fragment, android.support.v4.app.Fragment. Thus no 
+matter you are using any support dependency or not, this library will work exactly same.
 ```java
 permissionHandler = new PermissionHandler(this);
         permissionHandler
@@ -43,7 +46,7 @@ Add it on your gradle build:
 
 ```groovy
 dependencies {
-    compile 'com.prashant.android:runtimepermissionhandler:1.0.2'
+    compile 'com.prashant.android:runtimepermissionhandler:1.0.3'
 }
 ```
 
