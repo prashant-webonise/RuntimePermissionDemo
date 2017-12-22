@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
+import android.support.v13.app.FragmentCompat;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.PermissionChecker;
@@ -22,7 +23,8 @@ public class PermissionHandler {
      */
     private final Set<String> permissionsList = new HashSet<>();
     private Activity activity;
-    private Fragment fragment;
+    private Fragment supportV4Fragment;
+    private android.app.Fragment fragment;
     private int requestCode;
     /**
      * instance of callback interface for delegating the permission states
@@ -38,13 +40,17 @@ public class PermissionHandler {
         this.activity = activity;
     }
 
-    /**
-     * constructor supplied with fragment reference
-     *
-     * @param fragment valid instance of {@link Fragment}
-     */
-    public PermissionHandler(Fragment fragment) {
+    public PermissionHandler(android.app.Fragment fragment) {
         this.fragment = fragment;
+    }
+
+    /**
+     * constructor supplied with supportV4Fragment reference
+     *
+     * @param supportV4Fragment valid instance of {@link Fragment}
+     */
+    public PermissionHandler(Fragment supportV4Fragment) {
+        this.supportV4Fragment = supportV4Fragment;
     }
 
     @NonNull
@@ -72,15 +78,27 @@ public class PermissionHandler {
         final List<String> permissionsList = new ArrayList<>(this.permissionsList);
         boolean status = true;
         for (String permission : permissionsList) {
-            if (PackageManager.PERMISSION_GRANTED !=
-                    PermissionChecker.checkSelfPermission(null == activity ?
-                    fragment.getActivity() : activity, permission)) {
+            if (isPermissionGranted(permission)) {
                 status = false;
             } else {
                 this.permissionsList.remove(permission);
             }
         }
         return status;
+    }
+
+    private boolean isPermissionGranted(String permission) {
+        if (activity != null) {
+            return PackageManager.PERMISSION_GRANTED !=
+                    PermissionChecker.checkSelfPermission(activity, permission);
+        }
+        if (supportV4Fragment != null) {
+            return PackageManager.PERMISSION_GRANTED !=
+                    PermissionChecker.checkSelfPermission(supportV4Fragment.getActivity(),
+                            permission);
+        }
+        return PackageManager.PERMISSION_GRANTED !=
+                PermissionChecker.checkSelfPermission(fragment.getActivity(), permission);
     }
 
     /**
@@ -93,12 +111,12 @@ public class PermissionHandler {
         this.requestCode = requestCode;
         this.permissionInterface = permissionInterface;
         if (checkPermission()) {
-            if (null != this.permissionInterface) {
+            if (permissionInterface != null) {
                 this.permissionInterface.permissionAccepted(requestCode);
             }
         } else if (shouldShowRequestPermissionRationale(permissionsList)) {
             requestForPermission();
-            if (null != this.permissionInterface) {
+            if (permissionInterface != null) {
                 this.permissionInterface.showRationale(requestCode);
             }
         } else {
@@ -110,11 +128,14 @@ public class PermissionHandler {
      * method to display the System default rationale
      */
     private void requestForPermission() {
-        if (null == fragment) {
+        if (activity != null) {
             ActivityCompat.requestPermissions(activity, getStringArray(permissionsList),
                     requestCode);
+        } else if (supportV4Fragment != null) {
+            supportV4Fragment.requestPermissions(getStringArray(permissionsList), requestCode);
         } else {
-            fragment.requestPermissions(getStringArray(permissionsList), requestCode);
+            FragmentCompat.requestPermissions(fragment, getStringArray(permissionsList),
+                    requestCode);
         }
     }
 
@@ -123,12 +144,16 @@ public class PermissionHandler {
      */
     private boolean shouldShowRequestPermissionRationale(Set<String> permissions) {
         for (String permission : permissions) {
-            if (null == fragment) {
+            if (activity != null) {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
                     return true;
                 }
+            } else if (supportV4Fragment != null) {
+                if (supportV4Fragment.shouldShowRequestPermissionRationale(permission)) {
+                    return true;
+                }
             } else {
-                if (fragment.shouldShowRequestPermissionRationale(permission)) {
+                if (FragmentCompat.shouldShowRequestPermissionRationale(fragment, permission)) {
                     return true;
                 }
             }
@@ -156,11 +181,11 @@ public class PermissionHandler {
      */
     public void dispatchPermissionResult(int[] grantResults) {
         if (checkAllPermissionsGranted(grantResults)) {
-            if (null != permissionInterface) {
+            if (permissionInterface != null) {
                 permissionInterface.permissionAccepted(requestCode);
             }
         } else {
-            if (null != permissionInterface) {
+            if (permissionInterface != null) {
                 permissionInterface.permissionRejected(requestCode);
             }
         }
