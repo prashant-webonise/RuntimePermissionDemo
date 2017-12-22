@@ -38,7 +38,15 @@ permissionHandler = new PermissionHandler(this);
 ```
 And add this to ```onRequestPermissionsResult()```
 ```java
-permissionHandler.dispatchPermissionResult(grantResults);
+ @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CODE) {
+            // IMP : Must be called here
+            permissionHandler.dispatchPermissionResult(grantResults);
+        }
+    }
 ```
 <b>Integration</b>
 
